@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Syllabus Data — Status</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      max-width: 560px;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, #1f3864 0%, #2e5fa3 100%);
+      color: #fff;
+      padding: 32px 36px 28px;
+    }
+
+    .card-header h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .card-header p {
+      font-size: 0.85rem;
+      opacity: 0.75;
+      margin-top: 4px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,0.18);
+      border-radius: 99px;
+      padding: 4px 12px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      margin-top: 14px;
+    }
+
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #4ade80;
+      animation: pulse 2s infinite;
+    }
+
+    .dot.stale { background: #facc15; animation: none; }
+    .dot.never { background: #94a3b8; animation: none; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
+    }
+
+    .card-body { padding: 28px 36px 32px; }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .stat {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 16px 18px;
+    }
+
+    .stat-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin-top: 4px;
+      line-height: 1;
+    }
+
+    .stat-value.small { font-size: 0.95rem; margin-top: 6px; line-height: 1.4; }
+
+    .btn-download {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 14px;
+      background: #1f3864;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .btn-download:hover { background: #2e5fa3; }
+
+    .btn-download.disabled {
+      background: #cbd5e1;
+      color: #94a3b8;
+      pointer-events: none;
+      cursor: not-allowed;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 0.75rem;
+      color: #94a3b8;
+      margin-top: 20px;
+    }
+
+    #error-msg {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: #b91c1c;
+      font-size: 0.85rem;
+      margin-bottom: 20px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="card-header">
+    <h1>FPT SkillUp — Syllabus Data</h1>
+    <p>Automated pipeline · Kong API Gateway</p>
+    <div class="badge">
+      <span class="dot" id="status-dot"></span>
+      <span id="status-text">Loading…</span>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <div id="error-msg"></div>
+
+    <div class="stat-grid">
+      <div class="stat">
+        <div class="stat-label">Syllabuses</div>
+        <div class="stat-value" id="total-syllabuses">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">CSV Rows</div>
+        <div class="stat-value" id="csv-rows">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Last Fetch</div>
+        <div class="stat-value small" id="last-fetch">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">File</div>
+        <div class="stat-value small" id="csv-filename">—</div>
+      </div>
+    </div>
+
+    <a href="#" class="btn-download disabled" id="download-btn" download>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Download Latest CSV
+    </a>
+
+    <div class="footer" id="footer-text">Checking for data…</div>
+  </div>
+</div>
+
+<script>
+  async function loadStatus() {
+    const dot      = document.getElementById('status-dot');
+    const statusTx = document.getElementById('status-text');
+    const errEl    = document.getElementById('error-msg');
+
+    try {
+      // Cache-bust so Vercel always serves the freshest status.json
+      const res = await fetch('./status.json?t=' + Date.now());
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const s = await res.json();
+
+      if (!s.last_fetch) {
+        dot.className = 'dot never';
+        statusTx.textContent = 'No data yet';
+        document.getElementById('footer-text').textContent =
+          'Pipeline has not run yet.';
+        return;
+      }
+
+      // Populate stats
+      document.getElementById('total-syllabuses').textContent =
+        s.total_syllabuses?.toLocaleString() ?? '—';
+      document.getElementById('csv-rows').textContent =
+        s.csv_rows?.toLocaleString() ?? '—';
+      document.getElementById('csv-filename').textContent =
+        s.csv_filename ?? '—';
+
+      // Format date nicely
+      const fetchDate = new Date(s.last_fetch);
+      const formatted = isNaN(fetchDate)
+        ? s.last_fetch
+        : fetchDate.toLocaleString(undefined, {
+            year: 'numeric', month: 'short', day: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+          });
+      document.getElementById('last-fetch').textContent = formatted;
+
+      // Freshness: stale if last fetch > 8 days ago
+      const ageMs   = Date.now() - fetchDate.getTime();
+      const ageDays = ageMs / (1000 * 60 * 60 * 24);
+      if (ageDays > 8) {
+        dot.className = 'dot stale';
+        statusTx.textContent = `Last updated ${Math.floor(ageDays)} days ago`;
+      } else {
+        dot.className = 'dot';
+        statusTx.textContent = 'Up to date';
+      }
+
+      // Enable download button
+      if (s.csv_url) {
+        const btn = document.getElementById('download-btn');
+        btn.href = s.csv_url;
+        btn.className = 'btn-download';
+        btn.textContent = '';
+        btn.innerHTML = `
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Download ${s.csv_filename ?? 'Latest CSV'}`;
+      }
+
+      document.getElementById('footer-text').textContent =
+        `Data from FPT SkillUp API · Auto-refreshed on change`;
+
+    } catch (err) {
+      errEl.style.display = 'block';
+      errEl.textContent   = `Could not load status: ${err.message}`;
+      dot.className       = 'dot never';
+      statusTx.textContent = 'Error';
+    }
+  }
+
+  loadStatus();
+</script>
+</body>
+</html>
