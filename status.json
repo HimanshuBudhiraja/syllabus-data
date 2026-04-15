@@ -1,8 +1,8 @@
 {
-  "last_fetch": null,
-  "fetch_date": null,
-  "total_syllabuses": 0,
-  "csv_rows": 0,
-  "csv_filename": null,
-  "csv_url": null
+  "last_fetch": "2026-04-15T17:17:50",
+  "fetch_date": "2026-04-15",
+  "total_syllabuses": 329,
+  "csv_rows": 810,
+  "csv_filename": "syllabus_2026-04-15.csv",
+  "csv_url": "https://raw.githubusercontent.com/HimanshuBudhiraja/syllabus-data/main/output/syllabus_2026-04-15.csv"
 }
